@@ -3,7 +3,8 @@
 
 #include "SpringApplication.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	sm::SpringApplication application;
 	application.run();
 	return EXIT_SUCCESS;

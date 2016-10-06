@@ -21,9 +21,15 @@
     <ClCompile Include="SpringApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SpringView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpringApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpringView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

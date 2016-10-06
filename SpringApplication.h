@@ -1,9 +1,13 @@
 #pragma once
 
+#include "SpringView.h"
+
 #include <SFML/Window.hpp>
 
-namespace sm {
-	class SpringApplication {
+namespace sm
+{
+	class SpringApplication
+	{
 	public:
 		SpringApplication();
 		~SpringApplication();
@@ -11,6 +15,8 @@ namespace sm {
 		void run();
 
 	private:
-		sf::Window _window;
+		sf::Clock _clock;
+		sf::RenderWindow _window;
+		SpringView _springView;
 	};
 }
