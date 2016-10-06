@@ -19,52 +19,60 @@ TimechartRecord::TimechartRecord(Time eventTime, float value) :
 { 
 }
 
-Timechart::Timechart() :
-	_chartColor(sf::Color::Green)
+Timechart::Timechart()
 {
-	_timespanCovered = seconds(30.0f);
 }
 
-void Timechart::setViewport(sf::FloatRect viewport)
-{
-	_viewport = viewport;
-}
-
-void Timechart::setColor(sf::Color color)
-{
-	_chartColor = color;
-}
-
-void Timechart::addRecord(Time eventTime, float value)
+void Timechart::addRecord(sf::Time eventTime, float value)
 {
 	assert(_records.empty() || _records.back().EventTime <= eventTime);
 	_records.push_back(TimechartRecord(eventTime, value));
 }
 
-void Timechart::draw(RenderWindow &window, Time currentTime)
+void Timechart::deleteOldRecords(sf::Time thresholdTime)
 {
-	deleteOldRecords(currentTime);
-	
-	vector<Vertex> vertices;
-	Time boundaryTime = currentTime - _timespanCovered;
-	float timespanSeconds = _timespanCovered.asSeconds();
-
-	for (auto it = _records.begin(); it != _records.end(); ++it)
+	while (!_records.empty() && _records.front().EventTime < thresholdTime)
 	{
-		Time elapsedFromBoundary = it->EventTime - boundaryTime;
-		float elapsedSec = elapsedFromBoundary.asSeconds();
-		float widthPercent = elapsedSec / timespanSeconds;
-		float heightPercent = 0.95f * (1.0f - it->Value) + 0.025f;
-
-		Vertex vertex;
-		vertex.position = Vector2f(
-			_viewport.left + _viewport.width * widthPercent,
-			_viewport.top + _viewport.height * heightPercent
-		);
-
-		vertex.color = Color::Green;
-		vertices.push_back(vertex);
+		_records.pop_front();
 	}
+}
+
+const std::list<TimechartRecord>& sm::Timechart::getRecords()
+{
+	return _records;
+}
+
+TimechartsView::TimechartsView() :
+	_chartColor(sf::Color::Green)
+{
+	_timespanCovered = seconds(30.0f);
+}
+
+void TimechartsView::setViewport(sf::FloatRect viewport)
+{
+	_viewport = viewport;
+}
+
+void TimechartsView::setColor(sf::Color color)
+{
+	_chartColor = color;
+}
+
+void TimechartsView::registerTimechart(
+	std::shared_ptr<Timechart> timechart, 
+	sf::Color assignedColor
+)
+{
+	TimechartInfo info;
+	info.Timechart = timechart;
+	info.AssignedColor = assignedColor;
+	_records.push_back(info);
+}
+
+void TimechartsView::draw(RenderWindow &window, Time currentTime)
+{
+	Time boundaryTime = currentTime - _timespanCovered;
+	deleteOldRecords(boundaryTime);
 
 	RectangleShape background(Vector2f(_viewport.width-1, _viewport.height-1));
 	background.setFillColor(Color(83, 83, 83));
@@ -73,18 +81,56 @@ void Timechart::draw(RenderWindow &window, Time currentTime)
 	background.setOutlineThickness(1);
 
 	window.draw(background);
-	
-	if (!vertices.empty())
+
+	for (auto &timechart : _records)
 	{
-		window.draw(&vertices[0], vertices.size(), PrimitiveType::LinesStrip);
+		drawTimechart(
+			window,
+			timechart.Timechart,
+			timechart.AssignedColor,
+			boundaryTime
+		);
 	}
 }
 
-void Timechart::deleteOldRecords(Time currentTime)
+void TimechartsView::deleteOldRecords(Time thresholdTime)
 {
-	Time boundaryTime = currentTime - _timespanCovered;
-	while (!_records.empty() && _records.front().EventTime < boundaryTime)
+	for (auto &timechart : _records)
 	{
-		_records.pop_front();
+		timechart.Timechart->deleteOldRecords(thresholdTime);
+	}
+}
+
+void TimechartsView::drawTimechart(
+	sf::RenderWindow &window, 
+	std::shared_ptr<Timechart> timechart,
+	sf::Color color,
+	Time boundaryTime
+)
+{
+	vector<Vertex> vertices;
+	float timespanSeconds = _timespanCovered.asSeconds();
+	auto records = timechart->getRecords();
+
+	for (auto it = records.begin(); it != records.end(); ++it)
+	{
+		Time elapsedFromBoundary = it->EventTime - boundaryTime;
+		float elapsedSec = elapsedFromBoundary.asSeconds();
+		float widthPercent = elapsedSec / timespanSeconds;
+		float heightPercent = 0.95f * (1.0f - (0.5f + 0.5f*it->Value)) + 0.025f;
+
+		Vertex vertex;
+		vertex.position = Vector2f(
+			_viewport.left + _viewport.width * widthPercent,
+			_viewport.top + _viewport.height * heightPercent
+		);
+
+		vertex.color = color;
+		vertices.push_back(vertex);
+	}
+
+	if (!vertices.empty())
+	{
+		window.draw(&vertices[0], vertices.size(), PrimitiveType::LinesStrip);
 	}
 }

@@ -56,6 +56,7 @@ void Statechart::draw(RenderWindow &window)
 		_viewport.top + cOutlineThickness
 	));
 
+	background.setOutlineColor(Color::Black);
 	background.setOutlineThickness(cOutlineThickness);
 	background.setFillColor(Color(83, 83, 83));
 

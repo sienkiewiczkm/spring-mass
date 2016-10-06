@@ -2,11 +2,15 @@
 
 using namespace sm;
 using namespace sf;
+using namespace std;
 
 const int SpringApplication::cNumTimecharts = 4;
+const Time SpringApplication::cMaximumTimeDelta = seconds(1.0 / 30.0);
 
 SpringApplication::SpringApplication()
 {
+	_positionTimechart = make_shared<Timechart>();
+	_speedTimechart = make_shared<Timechart>();
 }
 
 SpringApplication::~SpringApplication()
@@ -15,11 +19,18 @@ SpringApplication::~SpringApplication()
 
 void SpringApplication::run()
 {
-	_window.create(sf::VideoMode(800, 600), "Mass on Spring Simulation");
+	_window.create(sf::VideoMode(1680, 1050), "Mass on Spring Simulation");
 	_view = _window.getDefaultView();
 
 	_clock.restart();
 
+	_topLeftTimechart.registerTimechart(_positionTimechart, Color::Green);
+	_topLeftTimechart.registerTimechart(_speedTimechart, Color::Red);
+	_topRightTimechart.registerTimechart(_speedTimechart, Color::Red);
+	_bottomLeftTimechart.registerTimechart(_speedTimechart, Color::Red);
+	_bottomRightTimechart.registerTimechart(_speedTimechart, Color::Red);
+
+	Time totalElapsedTime = Time::Zero;
 	while (_window.isOpen())
 	{
 		sf::Event windowEvent;
@@ -37,47 +48,79 @@ void SpringApplication::run()
 				_window.setView(_view);
 			}
 		}
-		
-		float springLength = 0.5f*
-			(1.0f + fabs(sinf(_clock.getElapsedTime().asSeconds())));
 
 		sf::Time elapsedTime = _clock.getElapsedTime();
+		_clock.restart();
+
+		if (elapsedTime > cMaximumTimeDelta)
+		{
+			elapsedTime = cMaximumTimeDelta;
+		}
+
+		totalElapsedTime += elapsedTime;
+		
+		updateControlsPositions();
+		
+		float springLength = fabs(sinf(totalElapsedTime.asSeconds()));
 
 		_springView.setSpringLength(springLength);
-		_positionTimechart.addRecord(elapsedTime, springLength);
+		_positionTimechart->addRecord(totalElapsedTime, springLength);
+		_speedTimechart->addRecord(totalElapsedTime, -springLength);
 
-		auto windowSize = _window.getSize();
-		float simulationWidth = 0.33f*windowSize.x;
-
-		float timechartPixelsHeight = (0.50f / (cNumTimecharts/2))*windowSize.y;
-		float timechartPixelsWidth = (windowSize.x - simulationWidth) / 2.0f;
-
-		float statechartHeight = 0.50f * windowSize.y;
-		float statechartWidth = windowSize.x - simulationWidth;
-
-		_springView.setViewport(FloatRect(
-			0, 0, simulationWidth, windowSize.y
-		));
-
-		_positionTimechart.setViewport(FloatRect(
-			simulationWidth, 0, 
-			timechartPixelsWidth, timechartPixelsHeight
-		));
-
-		_statechart.setViewport(FloatRect(
-			simulationWidth, 2.0f * timechartPixelsHeight,
-			statechartWidth, statechartHeight
-		));
-
-		float multipler = 1.0f / (1.0f+elapsedTime.asSeconds());
-		float timeSin = sinf(elapsedTime.asSeconds());
-		float timeCos = cosf(elapsedTime.asSeconds());
+		float multipler = 1.0f / (1.0f+ totalElapsedTime.asSeconds());
+		float timeSin = sinf(totalElapsedTime.asSeconds());
+		float timeCos = cosf(totalElapsedTime.asSeconds());
 		_statechart.addRecord(StatechartRecord(multipler*timeSin, multipler*timeCos));
 
 		_window.clear(sf::Color::White);
 		_springView.draw(_window);
-		_positionTimechart.draw(_window, elapsedTime);
+		_topLeftTimechart.draw(_window, totalElapsedTime);
+		_topRightTimechart.draw(_window, totalElapsedTime);
+		_bottomLeftTimechart.draw(_window, totalElapsedTime);
+		_bottomRightTimechart.draw(_window, totalElapsedTime);
 		_statechart.draw(_window);
 		_window.display();
 	}
+}
+
+void SpringApplication::updateControlsPositions()
+{
+	auto windowSize = _window.getSize();
+
+	float simulationWidth = 0.33f*windowSize.x;
+
+	float timechartPixelsWidth = (windowSize.x - simulationWidth) / 2.0f;
+	float timechartPixelsHeight = (0.50f / (cNumTimecharts / 2))*windowSize.y;
+
+	float statechartWidth = windowSize.x - simulationWidth;
+	float statechartHeight = 0.50f * windowSize.y;
+
+	_springView.setViewport(FloatRect(
+		0, 0, simulationWidth, windowSize.y
+	));
+
+	_topLeftTimechart.setViewport(FloatRect(
+		simulationWidth, 0,
+		timechartPixelsWidth, timechartPixelsHeight
+	));
+
+	_topRightTimechart.setViewport(FloatRect(
+		simulationWidth+timechartPixelsWidth, 0,
+		timechartPixelsWidth, timechartPixelsHeight
+	));
+
+	_bottomLeftTimechart.setViewport(FloatRect(
+		simulationWidth, timechartPixelsHeight,
+		timechartPixelsWidth, timechartPixelsHeight
+	));
+
+	_bottomRightTimechart.setViewport(FloatRect(
+		simulationWidth+timechartPixelsWidth, timechartPixelsHeight,
+		timechartPixelsWidth, timechartPixelsHeight
+	));
+
+	_statechart.setViewport(FloatRect(
+		simulationWidth, 2.0f * timechartPixelsHeight,
+		statechartWidth, statechartHeight
+	));
 }
