@@ -61,7 +61,7 @@ void SpringView::drawMass(RenderWindow & window)
 	CircleShape mass(_massRadius);
 	mass.setPosition(Vector2f(
 		_viewport.left + _viewport.width / 2.0f - _massRadius,
-		_viewport.top + _viewport.width - springLength + _massRadius
+		_viewport.top + _viewport.height - springLength - _massRadius
 	));
 
 	mass.setFillColor(Color::Red);

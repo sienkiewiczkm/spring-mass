@@ -18,6 +18,7 @@ namespace sm
 	private:
 		sf::Clock _clock;
 		sf::RenderWindow _window;
+		sf::View _view;
 		SpringView _springView;
 		Timechart _positionTimechart;
 	};
