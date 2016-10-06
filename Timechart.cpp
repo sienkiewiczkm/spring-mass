@@ -19,7 +19,8 @@ TimechartRecord::TimechartRecord(Time eventTime, float value) :
 { 
 }
 
-Timechart::Timechart()
+Timechart::Timechart() :
+	_chartColor(sf::Color::Green)
 {
 	_timespanCovered = seconds(30.0f);
 }
@@ -27,6 +28,11 @@ Timechart::Timechart()
 void Timechart::setViewport(sf::FloatRect viewport)
 {
 	_viewport = viewport;
+}
+
+void Timechart::setColor(sf::Color color)
+{
+	_chartColor = color;
 }
 
 void Timechart::addRecord(Time eventTime, float value)
@@ -48,7 +54,7 @@ void Timechart::draw(RenderWindow &window, Time currentTime)
 		Time elapsedFromBoundary = it->EventTime - boundaryTime;
 		float elapsedSec = elapsedFromBoundary.asSeconds();
 		float widthPercent = elapsedSec / timespanSeconds;
-		float heightPercent = 1.0f - it->Value;
+		float heightPercent = 0.95f * (1.0f - it->Value) + 0.025f;
 
 		Vertex vertex;
 		vertex.position = Vector2f(
@@ -60,9 +66,11 @@ void Timechart::draw(RenderWindow &window, Time currentTime)
 		vertices.push_back(vertex);
 	}
 
-	RectangleShape background(Vector2f(_viewport.width, _viewport.height));
-	background.setPosition(Vector2f(_viewport.left, _viewport.top));
-	background.setFillColor(Color::Black);
+	RectangleShape background(Vector2f(_viewport.width-1, _viewport.height-1));
+	background.setFillColor(Color(83, 83, 83));
+	background.setPosition(Vector2f(_viewport.left+1, _viewport.top+1));
+	background.setOutlineColor(Color::Black);
+	background.setOutlineThickness(1);
 
 	window.draw(background);
 	

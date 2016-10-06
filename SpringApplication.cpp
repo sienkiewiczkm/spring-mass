@@ -3,6 +3,8 @@
 using namespace sm;
 using namespace sf;
 
+const int SpringApplication::cNumTimecharts = 4;
+
 SpringApplication::SpringApplication()
 {
 }
@@ -47,8 +49,11 @@ void SpringApplication::run()
 		auto windowSize = _window.getSize();
 		float simulationWidth = 0.33f*windowSize.x;
 
-		int cNumOfTimecharts = 3;
-		float timechartPixelsHeight = (1.0f / cNumOfTimecharts)*windowSize.y;
+		float timechartPixelsHeight = (0.50f / (cNumTimecharts/2))*windowSize.y;
+		float timechartPixelsWidth = (windowSize.x - simulationWidth) / 2.0f;
+
+		float statechartHeight = 0.50f * windowSize.y;
+		float statechartWidth = windowSize.x - simulationWidth;
 
 		_springView.setViewport(FloatRect(
 			0, 0, simulationWidth, windowSize.y
@@ -56,12 +61,23 @@ void SpringApplication::run()
 
 		_positionTimechart.setViewport(FloatRect(
 			simulationWidth, 0, 
-			windowSize.x - simulationWidth, timechartPixelsHeight
+			timechartPixelsWidth, timechartPixelsHeight
 		));
+
+		_statechart.setViewport(FloatRect(
+			simulationWidth, 2.0f * timechartPixelsHeight,
+			statechartWidth, statechartHeight
+		));
+
+		float multipler = 1.0f / (1.0f+elapsedTime.asSeconds());
+		float timeSin = sinf(elapsedTime.asSeconds());
+		float timeCos = cosf(elapsedTime.asSeconds());
+		_statechart.addRecord(StatechartRecord(multipler*timeSin, multipler*timeCos));
 
 		_window.clear(sf::Color::White);
 		_springView.draw(_window);
 		_positionTimechart.draw(_window, elapsedTime);
+		_statechart.draw(_window);
 		_window.display();
 	}
 }

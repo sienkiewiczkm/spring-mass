@@ -27,6 +27,9 @@
     <ClCompile Include="Timechart.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Statechart.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpringApplication.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Timechart.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Statechart.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

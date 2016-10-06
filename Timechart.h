@@ -22,6 +22,7 @@ namespace sm
 		Timechart();
 
 		void setViewport(sf::FloatRect viewport);
+		void setColor(sf::Color color);
 		void addRecord(sf::Time eventTime, float value);
 		void draw(sf::RenderWindow &window, sf::Time currentTime);
 
