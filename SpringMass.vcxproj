@@ -126,10 +126,12 @@ if %errorlevel% leq 1 exit 0 else exit %errorlevel%</Command>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="SpringApplication.cpp" />
     <ClCompile Include="SpringView.cpp" />
+    <ClCompile Include="Timechart.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpringApplication.h" />
     <ClInclude Include="SpringView.h" />
+    <ClInclude Include="Timechart.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

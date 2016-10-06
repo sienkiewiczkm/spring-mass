@@ -16,6 +16,8 @@ void SpringApplication::run()
 
 	_clock.restart();
 	_springView.setViewport(sf::Rect<float>(0, 0, 400, 500));
+	_positionTimechart.setViewport(sf::FloatRect(400, 0, 200, 200));
+
 	while (_window.isOpen())
 	{
 		sf::Event windowEvent;
@@ -28,11 +30,16 @@ void SpringApplication::run()
 		}
 		
 		float springLength = 0.5f*
-			(1.0f + sinf(_clock.getElapsedTime().asSeconds()));
+			(1.0f + fabs(sinf(_clock.getElapsedTime().asSeconds())));
+
+		sf::Time elapsedTime = _clock.getElapsedTime();
+
 		_springView.setSpringLength(springLength);
+		_positionTimechart.addRecord(elapsedTime, springLength);
 
 		_window.clear(sf::Color::White);
 		_springView.draw(_window);
+		_positionTimechart.draw(_window, elapsedTime);
 		_window.display();
 	}
 }
