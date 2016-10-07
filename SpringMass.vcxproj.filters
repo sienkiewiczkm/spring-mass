@@ -30,6 +30,9 @@
     <ClCompile Include="Statechart.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MassSpringSimulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SpringApplication.h">
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Statechart.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MassSpringSimulation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

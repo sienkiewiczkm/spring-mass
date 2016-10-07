@@ -5,12 +5,14 @@ using namespace sf;
 using namespace std;
 
 const int SpringApplication::cNumTimecharts = 4;
-const Time SpringApplication::cMaximumTimeDelta = seconds(1.0 / 30.0);
+const Time SpringApplication::cMaximumTimeDelta = seconds(1.0f / 30.0f);
 
-SpringApplication::SpringApplication()
+SpringApplication::SpringApplication() :
+	_totalElapsedTime(Time::Zero)
 {
 	_positionTimechart = make_shared<Timechart>();
-	_speedTimechart = make_shared<Timechart>();
+	_velocityTimechart = make_shared<Timechart>();
+	_accelerationTimechart = make_shared<Timechart>();
 }
 
 SpringApplication::~SpringApplication()
@@ -22,15 +24,8 @@ void SpringApplication::run()
 	_window.create(sf::VideoMode(1680, 1050), "Mass on Spring Simulation");
 	_view = _window.getDefaultView();
 
-	_clock.restart();
+	setup();
 
-	_topLeftTimechart.registerTimechart(_positionTimechart, Color::Green);
-	_topLeftTimechart.registerTimechart(_speedTimechart, Color::Red);
-	_topRightTimechart.registerTimechart(_speedTimechart, Color::Red);
-	_bottomLeftTimechart.registerTimechart(_speedTimechart, Color::Red);
-	_bottomRightTimechart.registerTimechart(_speedTimechart, Color::Red);
-
-	Time totalElapsedTime = Time::Zero;
 	while (_window.isOpen())
 	{
 		sf::Event windowEvent;
@@ -57,30 +52,55 @@ void SpringApplication::run()
 			elapsedTime = cMaximumTimeDelta;
 		}
 
-		totalElapsedTime += elapsedTime;
+		_totalElapsedTime += elapsedTime;
 		
-		updateControlsPositions();
-		
-		float springLength = fabs(sinf(totalElapsedTime.asSeconds()));
-
-		_springView.setSpringLength(springLength);
-		_positionTimechart->addRecord(totalElapsedTime, springLength);
-		_speedTimechart->addRecord(totalElapsedTime, -springLength);
-
-		float multipler = 1.0f / (1.0f+ totalElapsedTime.asSeconds());
-		float timeSin = sinf(totalElapsedTime.asSeconds());
-		float timeCos = cosf(totalElapsedTime.asSeconds());
-		_statechart.addRecord(StatechartRecord(multipler*timeSin, multipler*timeCos));
-
-		_window.clear(sf::Color::White);
-		_springView.draw(_window);
-		_topLeftTimechart.draw(_window, totalElapsedTime);
-		_topRightTimechart.draw(_window, totalElapsedTime);
-		_bottomLeftTimechart.draw(_window, totalElapsedTime);
-		_bottomRightTimechart.draw(_window, totalElapsedTime);
-		_statechart.draw(_window);
-		_window.display();
+		update();
+		draw();
 	}
+}
+
+void SpringApplication::setup()
+{
+	_clock.restart();
+
+	_topLeftTimechart.registerTimechart(_positionTimechart, Color::Green);
+	_topLeftTimechart.registerTimechart(_velocityTimechart, Color::Red);
+	_topLeftTimechart.registerTimechart(_accelerationTimechart, Color::Blue);
+
+	_topRightTimechart.registerTimechart(_velocityTimechart, Color::Red);
+	_bottomLeftTimechart.registerTimechart(_velocityTimechart, Color::Red);
+	_bottomRightTimechart.registerTimechart(_velocityTimechart, Color::Red);
+
+	setupSimulation();
+}
+
+void SpringApplication::setupSimulation()
+{
+	_simulation = make_shared<MassSpringSimulation>(
+		1.0f, 1.0f, 0.8f, 0.5f, 0.8f, 0.01f
+	);
+}
+
+void SpringApplication::update()
+{
+	updateControlsPositions();
+
+	_simulation->step();
+
+	float position = _simulation->getPosition();
+	float velocity = _simulation->getVelocity();
+
+	_springView.setSpringLength(position);
+
+	_positionTimechart->addRecord(_totalElapsedTime, -position);
+	_velocityTimechart->addRecord(_totalElapsedTime, velocity);
+
+	_accelerationTimechart->addRecord(
+		_totalElapsedTime, 
+		_simulation->getAcceleration()
+	);
+
+	_statechart.addRecord(StatechartRecord(position, velocity));
 }
 
 void SpringApplication::updateControlsPositions()
@@ -123,4 +143,16 @@ void SpringApplication::updateControlsPositions()
 		simulationWidth, 2.0f * timechartPixelsHeight,
 		statechartWidth, statechartHeight
 	));
+}
+
+void SpringApplication::draw()
+{
+	_window.clear(sf::Color::White);
+	_springView.draw(_window);
+	_topLeftTimechart.draw(_window, _totalElapsedTime);
+	_topRightTimechart.draw(_window, _totalElapsedTime);
+	_bottomLeftTimechart.draw(_window, _totalElapsedTime);
+	_bottomRightTimechart.draw(_window, _totalElapsedTime);
+	_statechart.draw(_window);
+	_window.display();
 }

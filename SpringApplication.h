@@ -3,6 +3,7 @@
 #include "SpringView.h"
 #include "Timechart.h"
 #include "Statechart.h"
+#include "MassSpringSimulation.h"
 
 #include <SFML/Window.hpp>
 
@@ -20,9 +21,17 @@ namespace sm
 		static const int cNumTimecharts;
 		static const sf::Time cMaximumTimeDelta;
 
+		void setup();
+		void setupSimulation();
+
+		void update();
 		void updateControlsPositions();
+
+		void draw();
 		
 		sf::Clock _clock;
+		sf::Time _totalElapsedTime;
+
 		sf::RenderWindow _window;
 		sf::View _view;
 		SpringView _springView;
@@ -34,7 +43,9 @@ namespace sm
 
 		Statechart _statechart;
 
+		std::shared_ptr<MassSpringSimulation> _simulation;
 		std::shared_ptr<Timechart> _positionTimechart;
-		std::shared_ptr<Timechart> _speedTimechart;
+		std::shared_ptr<Timechart> _velocityTimechart;
+		std::shared_ptr<Timechart> _accelerationTimechart;
 	};
 }
