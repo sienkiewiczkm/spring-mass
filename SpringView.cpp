@@ -61,7 +61,7 @@ void SpringView::drawMass(RenderWindow & window)
 	CircleShape mass(_massRadius);
 	mass.setPosition(Vector2f(
 		_viewport.left + _viewport.width / 2.0f - _massRadius,
-		_viewport.top + _viewport.height - springLength - _massRadius
+		_viewport.top + springLength - _massRadius
 	));
 
 	mass.setFillColor(Color::Red);
@@ -77,7 +77,7 @@ void SpringView::drawSpring(RenderWindow &window)
 	RectangleShape spring(Vector2f(cSpringThickness, springLength));
 	spring.setPosition(Vector2f(
 		(_viewport.width - cSpringThickness) / 2.0f,
-		_viewport.height - springLength
+		_viewport.top + cBaseThickness
 	));
 	
 	spring.setFillColor(Color::Blue);
@@ -89,7 +89,7 @@ void SpringView::drawBase(RenderWindow & window)
 	RectangleShape base(Vector2f(_viewport.width, cBaseThickness));
 	base.setPosition(Vector2f(
 		_viewport.left,
-		_viewport.top + _viewport.height - cBaseThickness
+		0
 	));
 
 	base.setFillColor(Color::Green);
