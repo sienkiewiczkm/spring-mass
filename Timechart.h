@@ -27,6 +27,8 @@ namespace sm
 		const std::list<TimechartRecord>& getRecords();
 
 	private:
+		static const sf::Time cMinimumInbetweenTime;
+
 		std::list<TimechartRecord> _records;
 	};
 

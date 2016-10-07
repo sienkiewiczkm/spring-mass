@@ -29,6 +29,7 @@ namespace sm
 	private:
 		static const int cNumMaxRecords;
 		static const int cOutlineThickness;
+		static const float cMinimumNormDifference;
 
 		sf::FloatRect _viewport;
 		sf::Color _color;

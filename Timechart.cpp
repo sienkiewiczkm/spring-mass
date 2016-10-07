@@ -19,6 +19,8 @@ TimechartRecord::TimechartRecord(Time eventTime, float value) :
 { 
 }
 
+const Time Timechart::cMinimumInbetweenTime = seconds(0.1f);
+
 Timechart::Timechart()
 {
 }
@@ -26,6 +28,15 @@ Timechart::Timechart()
 void Timechart::addRecord(sf::Time eventTime, float value)
 {
 	assert(_records.empty() || _records.back().EventTime <= eventTime);
+
+	if (!_records.empty())
+	{
+		if ((eventTime - _records.back().EventTime) < cMinimumInbetweenTime)
+		{
+			return;
+		}
+	}
+
 	_records.push_back(TimechartRecord(eventTime, value));
 }
 

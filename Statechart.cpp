@@ -6,6 +6,7 @@ using namespace std;
 
 const int Statechart::cNumMaxRecords = 100000;
 const int Statechart::cOutlineThickness = 1;
+const float Statechart::cMinimumNormDifference = 0.0005f;
 
 StatechartRecord::StatechartRecord() :
 	XAxisValue(0.0f),
@@ -36,6 +37,19 @@ void Statechart::setColor(Color color)
 
 void Statechart::addRecord(StatechartRecord record)
 {
+	if (!_records.empty())
+	{
+		Vector2f lastState(_records.back().XAxisValue, _records.back().YAxisValue);
+		Vector2f insertedState(record.XAxisValue, record.YAxisValue);
+		auto difference = lastState - insertedState;
+		auto lengthSq = difference.x * difference.x + difference.y * difference.y;
+		auto length = fabs(lengthSq);
+		if (length < cMinimumNormDifference)
+		{
+			return;
+		}
+	}
+
 	_records.push_back(record);
 
 	if (_records.size() > cNumMaxRecords)
