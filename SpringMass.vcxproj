@@ -123,15 +123,20 @@ if %errorlevel% leq 1 exit 0 else exit %errorlevel%</Command>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConstantFunction.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MassSpringSimulation.cpp" />
+    <ClCompile Include="SinusoidalFunction.cpp" />
     <ClCompile Include="SpringApplication.cpp" />
     <ClCompile Include="SpringView.cpp" />
     <ClCompile Include="Statechart.cpp" />
     <ClCompile Include="Timechart.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConstantFunction.h" />
+    <ClInclude Include="ITimeFunction.h" />
     <ClInclude Include="MassSpringSimulation.h" />
+    <ClInclude Include="SinusoidalFunction.h" />
     <ClInclude Include="SpringApplication.h" />
     <ClInclude Include="SpringView.h" />
     <ClInclude Include="Statechart.h" />

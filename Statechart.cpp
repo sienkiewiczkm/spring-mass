@@ -5,7 +5,7 @@ using namespace sf;
 using namespace std;
 
 const int Statechart::cNumMaxRecords = 100000;
-const int Statechart::cOutlineThickness = 1;
+const float Statechart::cOutlineThickness = 1.0f;
 const float Statechart::cMinimumNormDifference = 0.0005f;
 
 StatechartRecord::StatechartRecord() :
@@ -70,9 +70,9 @@ void Statechart::draw(RenderWindow &window)
 		_viewport.top + cOutlineThickness
 	));
 
-	background.setOutlineColor(Color::Black);
+	background.setOutlineColor(Color::White);
 	background.setOutlineThickness(cOutlineThickness);
-	background.setFillColor(Color(83, 83, 83));
+	background.setFillColor(Color(110, 110, 110));
 
 	window.draw(background);
 

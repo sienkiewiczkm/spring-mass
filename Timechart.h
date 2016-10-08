@@ -44,6 +44,8 @@ namespace sm
 			sf::Color assignedColor
 		);
 
+		void setRange(float minimum, float maximum);
+
 		void draw(sf::RenderWindow &window, sf::Time currentTime);
 
 	private:
@@ -61,9 +63,13 @@ namespace sm
 			sf::Time boundaryTime
 		);
 
+		void drawZeroLine(sf::RenderWindow &window);
+
 		std::list<TimechartInfo> _records;
 		sf::FloatRect _viewport;
 		sf::Color _chartColor;
 		sf::Time _timespanCovered;
+		float _minimum;
+		float _maximum;
 	};
 }

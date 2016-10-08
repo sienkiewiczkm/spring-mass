@@ -1,4 +1,6 @@
 #include "SpringApplication.h"
+#include "ConstantFunction.h"
+#include "SinusoidalFunction.h"
 
 using namespace sm;
 using namespace sf;
@@ -8,11 +10,16 @@ const int SpringApplication::cNumTimecharts = 4;
 const Time SpringApplication::cMaximumTimeDelta = seconds(1.0f / 30.0f);
 
 SpringApplication::SpringApplication() :
-	_totalElapsedTime(Time::Zero)
+	_totalElapsedTime(Time::Zero),
+	_leftoverTime(Time::Zero)
 {
 	_positionTimechart = make_shared<Timechart>();
 	_velocityTimechart = make_shared<Timechart>();
 	_accelerationTimechart = make_shared<Timechart>();
+	_resilienceForceTimechart = make_shared<Timechart>();
+	_attenuationForceTimechart = make_shared<Timechart>();
+	_externalForceTimechart = make_shared<Timechart>();
+	_massBalanceTimechart = make_shared<Timechart>();
 }
 
 SpringApplication::~SpringApplication()
@@ -39,20 +46,27 @@ void SpringApplication::run()
 			if (windowEvent.type == Event::Resized)
 			{
 				auto windowSize = _window.getSize();
-				_view = View(FloatRect(0.0f, 0.0f, windowSize.x, windowSize.y));
+
+				_view = View(FloatRect(
+					0.0f,
+					0.0f,
+					(float)windowSize.x,
+					(float)windowSize.y
+				));
+
 				_window.setView(_view);
 			}
 		}
 
-		sf::Time elapsedTime = _clock.getElapsedTime();
+		_deltaTime = _clock.getElapsedTime();
 		_clock.restart();
 
-		if (elapsedTime > cMaximumTimeDelta)
+		if (_deltaTime > cMaximumTimeDelta)
 		{
-			elapsedTime = cMaximumTimeDelta;
+			_deltaTime = cMaximumTimeDelta;
 		}
 
-		_totalElapsedTime += elapsedTime;
+		_totalElapsedTime += _deltaTime;
 		
 		update();
 		draw();
@@ -65,19 +79,44 @@ void SpringApplication::setup()
 
 	_topLeftTimechart.registerTimechart(_positionTimechart, Color::Green);
 	_topLeftTimechart.registerTimechart(_velocityTimechart, Color::Red);
-	_topLeftTimechart.registerTimechart(_accelerationTimechart, Color::Blue);
+	_topLeftTimechart.registerTimechart(_accelerationTimechart, Color::Yellow);
 
-	_topRightTimechart.registerTimechart(_velocityTimechart, Color::Red);
-	_bottomLeftTimechart.registerTimechart(_velocityTimechart, Color::Red);
-	_bottomRightTimechart.registerTimechart(_velocityTimechart, Color::Red);
+	_topRightTimechart.registerTimechart(
+		_resilienceForceTimechart,
+		Color::Green
+	);
+
+	_topRightTimechart.registerTimechart(
+		_attenuationForceTimechart, 
+		Color::Red
+	);
+
+	_topRightTimechart.registerTimechart(_externalForceTimechart, Color::Yellow);
+	_bottomLeftTimechart.registerTimechart(_massBalanceTimechart, Color::Red);
 
 	setupSimulation();
 }
 
 void SpringApplication::setupSimulation()
 {
+	_mass = 2.0f;
+	_resilience = 3.0f;
+	_initialPosition = 0.7f;
+	_initialVelocity = 0.3f;
+	_attenuationFactor = 0.1f;
+	_step = 0.001f;
+	_massBalanceFunction = make_shared<ConstantFunction>(0.5f);
+	_externalForceFunction = make_shared<SinusoidalFunction>(0.5f, 1.0f, 0.0f);
+
 	_simulation = make_shared<MassSpringSimulation>(
-		1.0f, 1.0f, 0.8f, 0.5f, 0.8f, 0.01f
+		_mass,
+		_resilience,
+		_initialPosition,
+		_initialVelocity,
+		_attenuationFactor,
+		_step,
+		_massBalanceFunction,
+		_externalForceFunction
 	);
 }
 
@@ -85,7 +124,16 @@ void SpringApplication::update()
 {
 	updateControlsPositions();
 
-	_simulation->step();
+	Time timeCovered = Time::Zero;
+	Time timeToCover = _deltaTime + _leftoverTime;
+	Time step = seconds(_simulation->getStep());
+
+	for (; (timeCovered + step) <= timeToCover ; timeCovered += step)
+	{
+		_simulation->step();
+	}
+
+	_leftoverTime = timeToCover - timeCovered;
 
 	float position = _simulation->getPosition();
 	float velocity = _simulation->getVelocity();
@@ -98,6 +146,26 @@ void SpringApplication::update()
 	_accelerationTimechart->addRecord(
 		_totalElapsedTime, 
 		_simulation->getAcceleration()
+	);
+
+	_resilienceForceTimechart->addRecord(
+		_totalElapsedTime,
+		_simulation->getResilienceForce()
+	);
+
+	_attenuationForceTimechart->addRecord(
+		_totalElapsedTime,
+		_simulation->getAttenuationForce()
+	);
+
+	_externalForceTimechart->addRecord(
+		_totalElapsedTime, 
+		_externalForceFunction->get()
+	);
+
+	_massBalanceTimechart->addRecord(
+		_totalElapsedTime, 
+		_massBalanceFunction->get()
 	);
 
 	_statechart.addRecord(StatechartRecord(position, velocity));

@@ -19,7 +19,7 @@ TimechartRecord::TimechartRecord(Time eventTime, float value) :
 { 
 }
 
-const Time Timechart::cMinimumInbetweenTime = seconds(0.1f);
+const Time Timechart::cMinimumInbetweenTime = seconds(0.05f);
 
 Timechart::Timechart()
 {
@@ -54,7 +54,9 @@ const std::list<TimechartRecord>& sm::Timechart::getRecords()
 }
 
 TimechartsView::TimechartsView() :
-	_chartColor(sf::Color::Green)
+	_chartColor(sf::Color::Green),
+	_minimum(-1.5f),
+	_maximum(+4.0f)
 {
 	_timespanCovered = seconds(30.0f);
 }
@@ -80,18 +82,25 @@ void TimechartsView::registerTimechart(
 	_records.push_back(info);
 }
 
+void TimechartsView::setRange(float minimum, float maximum)
+{
+	_minimum = minimum;
+	_maximum = maximum;
+}
+
 void TimechartsView::draw(RenderWindow &window, Time currentTime)
 {
 	Time boundaryTime = currentTime - _timespanCovered;
 	deleteOldRecords(boundaryTime);
 
 	RectangleShape background(Vector2f(_viewport.width-1, _viewport.height-1));
-	background.setFillColor(Color(83, 83, 83));
+	background.setFillColor(Color(110, 110, 110));
 	background.setPosition(Vector2f(_viewport.left+1, _viewport.top+1));
-	background.setOutlineColor(Color::Black);
-	background.setOutlineThickness(1);
+	background.setOutlineColor(Color::White);
+	background.setOutlineThickness(1.0f);
 
 	window.draw(background);
+	drawZeroLine(window);
 
 	for (auto &timechart : _records)
 	{
@@ -128,7 +137,9 @@ void TimechartsView::drawTimechart(
 		Time elapsedFromBoundary = it->EventTime - boundaryTime;
 		float elapsedSec = elapsedFromBoundary.asSeconds();
 		float widthPercent = elapsedSec / timespanSeconds;
-		float heightPercent = 0.95f * (1.0f - (0.5f + 0.5f*it->Value)) + 0.025f;
+
+		float heightPercent = 1.0f - 
+			((it->Value - _minimum) / (_maximum - _minimum));
 
 		Vertex vertex;
 		vertex.position = Vector2f(
@@ -144,4 +155,28 @@ void TimechartsView::drawTimechart(
 	{
 		window.draw(&vertices[0], vertices.size(), PrimitiveType::LinesStrip);
 	}
+}
+
+void TimechartsView::drawZeroLine(sf::RenderWindow & window)
+{
+	vector<Vertex> zeroLine;
+	float zeroHeightPercent = (-_minimum) / (_maximum - _minimum);
+	float zeroHeight = _viewport.top 
+		+ _viewport.height * (1.0f - zeroHeightPercent);
+
+	zeroLine.push_back(
+		Vertex(
+			Vector2f(_viewport.left, zeroHeight),
+			Color::Black
+		)
+	);
+
+	zeroLine.push_back(
+		Vertex(
+			Vector2f(_viewport.left + _viewport.width, zeroHeight),
+			Color::Black
+		)
+	);
+
+	window.draw(&zeroLine[0], zeroLine.size(), PrimitiveType::LinesStrip);
 }

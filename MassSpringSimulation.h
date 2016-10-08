@@ -1,5 +1,9 @@
 #pragma once
 
+#include "ITimeFunction.h"
+
+#include <memory>
+
 namespace sm
 {
 	class MassSpringSimulation
@@ -9,9 +13,11 @@ namespace sm
 			float weightMass,
 			float springResilience,
 			float initialPosition,
-			float massBalancePoint,
+			float initialVelocity,
 			float attenuationFactor,
-			float stepLength
+			float stepLength,
+			std::shared_ptr<ITimeFunction> massBalancePointFunction,
+			std::shared_ptr<ITimeFunction> externalForceFunction
 		);
 
 		void step();
@@ -19,6 +25,8 @@ namespace sm
 		float getPosition() const;
 		float getVelocity() const;
 		float getAcceleration() const;
+		float getResilienceForce() const;
+		float getAttenuationForce() const;
 
 		float getStep() const;
 
@@ -27,10 +35,15 @@ namespace sm
 		float _springResilience;
 		float _position;
 		float _previousPosition;
-		float _massBalancePoint;
 		float _attenuationFactor;
 		float _step;
+
 		float _velocity;
 		float _acceleration;
+		float _resilienceForce;
+		float _attenuationForce;
+
+		std::shared_ptr<ITimeFunction> _massBalancePointFunction;
+		std::shared_ptr<ITimeFunction> _externalForceFunction;
 	};
 }
